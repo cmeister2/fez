@@ -135,3 +135,20 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
             toolchain: stable
+      - name: Publish to crates.io on tags
+        uses: actions-rs/cargo@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          toolchain: stable
+          command: publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.PUBLISH_SECRET }}
+      - name: Dry-run publish on non-tags
+        uses: actions-rs/cargo@v1
+        if: startsWith(github.ref, 'refs/tags/') != true
+        with:
+          toolchain: stable
+          command: publish
+          args: --dry-run
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.PUBLISH_SECRET }}

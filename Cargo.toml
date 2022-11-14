@@ -1,5 +1,5 @@
 [package]
-name = "rpm-rs"
+name = "fez"
 version = "0.8.1"
 authors = [
     "René Richter <richterrettich@gmail.com>",
@@ -9,8 +9,10 @@ authors = [
 edition = "2018"
 license = "Apache-2.0"
 description = "A pure rust library for building and parsing RPMs"
-homepage = "https://github.com/rpm-rs/rpm-rs"
-repository = "https://github.com/rpm-rs/rpm-rs"
+
+# Original page is https://github.com/rpm-rs/rpm-rs
+homepage = "https://github.com/cmeister2/fez"
+repository = "https://github.com/cmeister2/fez"
 readme = "README.md"
 keywords = ["RPM", "packaging"]
 categories = ["parsing", "development-tools"]

@@ -438,6 +438,11 @@ impl Header<IndexTag> {
         self.get_entry_i64_data(IndexTag::RPMTAG_INSTALLTIME)
     }
 
+    #[inline]
+    pub fn get_description(&self) -> Result<&str, RPMError> {
+        self.get_entry_string_data(IndexTag::RPMTAG_DESCRIPTION)
+    }
+
     /// Extract a the set of contained file names.
     pub fn get_file_paths(&self) -> Result<Vec<PathBuf>, RPMError> {
         // reconstruct the messy de-constructed paths

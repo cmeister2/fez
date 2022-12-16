@@ -433,14 +433,52 @@ impl Header<IndexTag> {
         self.get_entry_string_data(IndexTag::RPMTAG_ARCH)
     }
 
-    #[inline]
-    pub fn get_install_time(&self) -> Result<i64, RPMError> {
+    pub fn get_install_time(&self) -> Result<u64, RPMError> {
         self.get_entry_i64_data(IndexTag::RPMTAG_INSTALLTIME)
+            .map(|v| v as u64)
+    }
+
+    pub fn get_build_time(&self) -> Result<u32, RPMError> {
+        self.get_entry_i32_data(IndexTag::RPMTAG_BUILDTIME)
+            .map(|v| v as u32)
+    }
+
+    pub fn get_archive_size(&self) -> Result<u64, RPMError> {
+        self.get_entry_i64_data(IndexTag::RPMTAG_LONGARCHIVESIZE)
+            .map(|v| v as u64)
+            .or_else(|_| {
+                self.get_entry_i32_data(IndexTag::RPMTAG_ARCHIVESIZE)
+                    .map(|v| v as u64)
+            })
+    }
+
+    pub fn get_installed_size(&self) -> Result<u64, RPMError> {
+        self.get_entry_i64_data(IndexTag::RPMTAG_LONGSIZE)
+            .map(|v| v as u64)
+            .or_else(|_| {
+                self.get_entry_i32_data(IndexTag::RPMTAG_SIZE)
+                    .map(|v| v as u64)
+            })
     }
 
     #[inline]
     pub fn get_description(&self) -> Result<&[String], RPMError> {
         self.get_entry_string_array_data(IndexTag::RPMTAG_DESCRIPTION)
+    }
+
+    #[inline]
+    pub fn get_summary(&self) -> Result<&[String], RPMError> {
+        self.get_entry_string_array_data(IndexTag::RPMTAG_SUMMARY)
+    }
+
+    #[inline]
+    pub fn get_packager(&self) -> Result<&[String], RPMError> {
+        self.get_entry_string_array_data(IndexTag::RPMTAG_PACKAGER)
+    }
+
+    #[inline]
+    pub fn get_url(&self) -> Result<&str, RPMError> {
+        self.get_entry_string_data(IndexTag::RPMTAG_URL)
     }
 
     /// Extract a the set of contained file names.

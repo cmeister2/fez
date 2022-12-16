@@ -439,8 +439,8 @@ impl Header<IndexTag> {
     }
 
     #[inline]
-    pub fn get_description(&self) -> Result<&str, RPMError> {
-        self.get_entry_string_data(IndexTag::RPMTAG_DESCRIPTION)
+    pub fn get_description(&self) -> Result<&[String], RPMError> {
+        self.get_entry_string_array_data(IndexTag::RPMTAG_DESCRIPTION)
     }
 
     /// Extract a the set of contained file names.

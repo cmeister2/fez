@@ -481,6 +481,31 @@ impl Header<IndexTag> {
         self.get_entry_string_data(IndexTag::RPMTAG_URL)
     }
 
+    #[inline]
+    pub fn get_license(&self) -> Result<&str, RPMError> {
+        self.get_entry_string_data(IndexTag::RPMTAG_LICENSE)
+    }
+
+    #[inline]
+    pub fn get_vendor(&self) -> Result<&str, RPMError> {
+        self.get_entry_string_data(IndexTag::RPMTAG_VENDOR)
+    }
+
+    #[inline]
+    pub fn get_group(&self) -> Result<&[String], RPMError> {
+        self.get_entry_string_array_data(IndexTag::RPMTAG_GROUP)
+    }
+
+    #[inline]
+    pub fn get_buildhost(&self) -> Result<&str, RPMError> {
+        self.get_entry_string_data(IndexTag::RPMTAG_BUILDHOST)
+    }
+
+    #[inline]
+    pub fn get_source_rpm(&self) -> Result<&str, RPMError> {
+        self.get_entry_string_data(IndexTag::RPMTAG_SOURCERPM)
+    }
+
     /// Extract a the set of contained file names.
     pub fn get_file_paths(&self) -> Result<Vec<PathBuf>, RPMError> {
         // reconstruct the messy de-constructed paths
@@ -591,6 +616,98 @@ impl Header<IndexTag> {
         )?;
         Ok(v)
     }
+
+    /// Extract a the set of provisions
+    pub fn get_provides_entries(&self) -> Result<Vec<RpmEntry>, RPMError> {
+        let names = self.get_entry_string_array_data(IndexTag::RPMTAG_PROVIDENAME)?;
+        let flags = self.get_entry_i32_array_data(IndexTag::RPMTAG_PROVIDEFLAGS)?;
+        let versions = self.get_entry_string_array_data(IndexTag::RPMTAG_PROVIDEVERSION)?;
+
+        let n = names.len();
+
+        let v = itertools::multizip((names.into_iter(), flags, versions))
+            .try_fold::<Vec<RpmEntry>, _, Result<_, RPMError>>(
+                Vec::with_capacity(n),
+                |mut acc, (name, flags, version)| {
+                    acc.push(RpmEntry {
+                        name: name.to_owned(),
+                        flags,
+                        version: version.to_owned(),
+                    });
+                    Ok(acc)
+                },
+            )?;
+        Ok(v)
+    }
+
+    /// Extract a the set of provisions
+    pub fn get_conflicts_entries(&self) -> Result<Vec<RpmEntry>, RPMError> {
+        let names = self.get_entry_string_array_data(IndexTag::RPMTAG_CONFLICTNAME)?;
+        let flags = self.get_entry_i32_array_data(IndexTag::RPMTAG_CONFLICTFLAGS)?;
+        let versions = self.get_entry_string_array_data(IndexTag::RPMTAG_CONFLICTVERSION)?;
+
+        let n = names.len();
+
+        let v = itertools::multizip((names.into_iter(), flags, versions))
+            .try_fold::<Vec<RpmEntry>, _, Result<_, RPMError>>(
+                Vec::with_capacity(n),
+                |mut acc, (name, flags, version)| {
+                    acc.push(RpmEntry {
+                        name: name.to_owned(),
+                        flags,
+                        version: version.to_owned(),
+                    });
+                    Ok(acc)
+                },
+            )?;
+        Ok(v)
+    }
+
+    /// Extract a the set of provisions
+    pub fn get_obsoletes_entries(&self) -> Result<Vec<RpmEntry>, RPMError> {
+        let names = self.get_entry_string_array_data(IndexTag::RPMTAG_OBSOLETENAME)?;
+        let flags = self.get_entry_i32_array_data(IndexTag::RPMTAG_OBSOLETEFLAGS)?;
+        let versions = self.get_entry_string_array_data(IndexTag::RPMTAG_OBSOLETEVERSION)?;
+
+        let n = names.len();
+
+        let v = itertools::multizip((names.into_iter(), flags, versions))
+            .try_fold::<Vec<RpmEntry>, _, Result<_, RPMError>>(
+                Vec::with_capacity(n),
+                |mut acc, (name, flags, version)| {
+                    acc.push(RpmEntry {
+                        name: name.to_owned(),
+                        flags,
+                        version: version.to_owned(),
+                    });
+                    Ok(acc)
+                },
+            )?;
+        Ok(v)
+    }
+
+    /// Extract a the set of provisions
+    pub fn get_requires_entries(&self) -> Result<Vec<RpmEntry>, RPMError> {
+        let names = self.get_entry_string_array_data(IndexTag::RPMTAG_REQUIRENAME)?;
+        let flags = self.get_entry_i32_array_data(IndexTag::RPMTAG_REQUIREFLAGS)?;
+        let versions = self.get_entry_string_array_data(IndexTag::RPMTAG_REQUIREVERSION)?;
+
+        let n = names.len();
+
+        let v = itertools::multizip((names.into_iter(), flags, versions))
+            .try_fold::<Vec<RpmEntry>, _, Result<_, RPMError>>(
+                Vec::with_capacity(n),
+                |mut acc, (name, flags, version)| {
+                    acc.push(RpmEntry {
+                        name: name.to_owned(),
+                        flags,
+                        version: version.to_owned(),
+                    });
+                    Ok(acc)
+                },
+            )?;
+        Ok(v)
+    }
 }
 
 /// User facing accessor type representing ownership of a file
@@ -688,6 +805,14 @@ pub struct FileEntry {
     pub category: FileCategory,
     // @todo SELinux context? how is that done?
     pub digest: Option<FileDigest>,
+}
+
+/// User facing accessor type for a provision entry
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
+pub struct RpmEntry {
+    pub name: String,
+    pub flags: i32,
+    pub version: String,
 }
 
 fn parse_entry_data_number<'a, T, E, F>(

@@ -640,7 +640,7 @@ impl Header<IndexTag> {
         Ok(v)
     }
 
-    /// Extract a the set of provisions
+    /// Extract a the set of conflicts
     pub fn get_conflicts_entries(&self) -> Result<Vec<RpmEntry>, RPMError> {
         let names = self.get_entry_string_array_data(IndexTag::RPMTAG_CONFLICTNAME)?;
         let flags = self.get_entry_i32_array_data(IndexTag::RPMTAG_CONFLICTFLAGS)?;
@@ -663,7 +663,7 @@ impl Header<IndexTag> {
         Ok(v)
     }
 
-    /// Extract a the set of provisions
+    /// Extract a the set of obsoletes
     pub fn get_obsoletes_entries(&self) -> Result<Vec<RpmEntry>, RPMError> {
         let names = self.get_entry_string_array_data(IndexTag::RPMTAG_OBSOLETENAME)?;
         let flags = self.get_entry_i32_array_data(IndexTag::RPMTAG_OBSOLETEFLAGS)?;
@@ -686,7 +686,7 @@ impl Header<IndexTag> {
         Ok(v)
     }
 
-    /// Extract a the set of provisions
+    /// Extract a the set of requirements
     pub fn get_requires_entries(&self) -> Result<Vec<RpmEntry>, RPMError> {
         let names = self.get_entry_string_array_data(IndexTag::RPMTAG_REQUIRENAME)?;
         let flags = self.get_entry_i32_array_data(IndexTag::RPMTAG_REQUIREFLAGS)?;

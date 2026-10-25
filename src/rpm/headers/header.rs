@@ -446,25 +446,22 @@ impl Header<IndexTag> {
         let dirs = self.get_entry_string_array_data(IndexTag::RPMTAG_DIRNAMES)?;
 
         let n = dirs.len();
-        let v = base
-            .iter()
-            .zip(biject.into_iter())
-            .try_fold::<Vec<PathBuf>, _, _>(
-                Vec::<PathBuf>::with_capacity(base.len()),
-                |mut acc, item| {
-                    let (base, dir_index) = item;
-                    if let Some(dir) = dirs.get(dir_index as usize) {
-                        acc.push(PathBuf::from(dir).join(base));
-                        Ok(acc)
-                    } else {
-                        Err(RPMError::InvalidTagIndex {
-                            tag: IndexTag::RPMTAG_DIRINDEXES.to_string(),
-                            index: dir_index as u32,
-                            bound: n as u32,
-                        })
-                    }
-                },
-            )?;
+        let v = base.iter().zip(biject).try_fold::<Vec<PathBuf>, _, _>(
+            Vec::<PathBuf>::with_capacity(base.len()),
+            |mut acc, item| {
+                let (base, dir_index) = item;
+                if let Some(dir) = dirs.get(dir_index as usize) {
+                    acc.push(PathBuf::from(dir).join(base));
+                    Ok(acc)
+                } else {
+                    Err(RPMError::InvalidTagIndex {
+                        tag: IndexTag::RPMTAG_DIRINDEXES.to_string(),
+                        index: dir_index as u32,
+                        bound: n as u32,
+                    })
+                }
+            },
+        )?;
         Ok(v)
     }
 
@@ -538,7 +535,10 @@ impl Header<IndexTag> {
                         group: group.to_owned(),
                     },
                     mode: mode.into(),
-                    modified_at: utc.timestamp(mtime as i64, 0u32),
+                    modified_at: utc
+                        .timestamp_opt(mtime as i64, 0u32)
+                        .single()
+                        .expect("RPM timestamp is in range"),
                     digest,
                     category: FileCategory::from_i32(flags).unwrap_or_default(),
                     size: size as usize,

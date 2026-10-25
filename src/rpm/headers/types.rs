@@ -169,7 +169,7 @@ impl From<FileMode> for i16 {
 
 impl From<FileMode> for u16 {
     fn from(mode: FileMode) -> Self {
-        mode.raw_mode() as u16
+        mode.raw_mode()
     }
 }
 

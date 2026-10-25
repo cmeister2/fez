@@ -11,7 +11,10 @@ fn now() -> ::chrono::DateTime<::chrono::Utc> {
     // accuracy of serialized format is only down to seconds
     use ::chrono::offset::TimeZone;
     let now = ::chrono::offset::Utc::now();
-    ::chrono::offset::Utc.timestamp(now.timestamp(), 0u32)
+    ::chrono::offset::Utc
+        .timestamp_opt(now.timestamp(), 0u32)
+        .single()
+        .expect("current timestamp is in range")
 }
 
 /// Signer implementation using the `pgp` crate.
@@ -137,41 +140,35 @@ impl traits::Verifying<traits::algorithm::RSA> for Verifier {
                 );
             }
 
-            self.public_key
-                .public_subkeys
-                .iter()
-                .filter(|sub_key| {
-                    if sub_key.key_id().as_ref() == key_id.as_ref() {
-                        log::trace!(
-                            "Found a matching key id {:?} == {:?}",
-                            sub_key.key_id(),
-                            key_id
-                        );
-                        true
-                    } else {
-                        log::trace!("Not the one we want: {:?}", sub_key);
-                        false
-                    }
-                })
-                .fold(
-                    Err(RPMError::KeyNotFoundError {
-                        key_ref: format!("{:?}", key_id),
-                    }),
-                    |previous_res, sub_key| {
-                        if previous_res.is_err() {
-                            log::trace!("Test next candidate subkey");
-                            signature.verify(sub_key, &mut data).map_err(|e| {
-                                RPMError::VerificationError {
-                                    source: Box::new(e),
-                                    key_ref: format!("{:?}", sub_key.key_id()),
-                                }
-                            })
-                        } else {
-                            log::trace!("Signature already verified, nop");
-                            Ok(())
-                        }
-                    },
-                )
+            let mut result = Err(RPMError::KeyNotFoundError {
+                key_ref: format!("{:?}", key_id),
+            });
+            for sub_key in self.public_key.public_subkeys.iter().filter(|sub_key| {
+                if sub_key.key_id().as_ref() == key_id.as_ref() {
+                    log::trace!(
+                        "Found a matching key id {:?} == {:?}",
+                        sub_key.key_id(),
+                        key_id
+                    );
+                    true
+                } else {
+                    log::trace!("Not the one we want: {:?}", sub_key);
+                    false
+                }
+            }) {
+                log::trace!("Test next candidate subkey");
+                result =
+                    signature
+                        .verify(sub_key, &mut data)
+                        .map_err(|e| RPMError::VerificationError {
+                            source: Box::new(e),
+                            key_ref: format!("{:?}", sub_key.key_id()),
+                        });
+                if result.is_ok() {
+                    break;
+                }
+            }
+            result
         } else {
             log::trace!(
                 "Signature has no issuer ref, attempting primary key: {:?}",
@@ -274,7 +271,7 @@ pub(crate) mod test {
         let (signer, verifier) = prep();
         let (signing_key, verification_key) = { (signer.secret_key, verifier.public_key) };
 
-        let passwd_fn = || String::new();
+        let passwd_fn = String::new;
 
         let digest = &RPM_SHA2_256[..];
 
@@ -328,7 +325,7 @@ pub(crate) mod test {
         let data = [1u8; 322];
         let data = &data[..];
 
-        let passwd_fn = || String::new();
+        let passwd_fn = String::new;
 
         let now = now();
 

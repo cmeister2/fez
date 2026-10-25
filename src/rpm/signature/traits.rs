@@ -17,7 +17,6 @@ pub mod algorithm {
     /// without breaking the API
     #[derive(Debug, Clone, Copy)]
     #[allow(non_camel_case_types)]
-
     pub struct RSA;
 
     impl Algorithm for RSA {}

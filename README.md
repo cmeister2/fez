@@ -2,6 +2,8 @@
 
 A pure rust library for parsing and creating RPM files.
 
+Requires Rust 1.60 or newer.
+
 ### Goals
 
 - Easy to use API

@@ -371,8 +371,8 @@ impl RPMBuilder {
 
             // accross header index and content (compressed or uncompressed, depends on configuration)
             let mut hasher = md5::Md5::default();
-            hasher.update(&header);
-            hasher.update(&content);
+            hasher.update(header);
+            hasher.update(content);
             let digest_md5 = hasher.finalize();
             digest_md5.to_vec()
         };
@@ -382,7 +382,7 @@ impl RPMBuilder {
             use sha1::Digest;
 
             let mut hasher = sha1::Sha1::default();
-            hasher.update(&header);
+            hasher.update(header);
             let digest_sha1 = hasher.finalize();
             hex::encode(digest_sha1)
         };
@@ -399,8 +399,6 @@ impl RPMBuilder {
         // Lead is not important. just build it here
 
         let lead = Lead::new(&self.name);
-
-        let mut ino_index = 1;
 
         let mut file_sizes = Vec::new();
         let mut file_modes = Vec::new();
@@ -420,7 +418,7 @@ impl RPMBuilder {
 
         let mut combined_file_sizes = 0;
 
-        for (cpio_path, entry) in self.files.iter() {
+        for (ino_index, (cpio_path, entry)) in (1_i32..).zip(self.files.iter()) {
             combined_file_sizes += entry.size;
             file_sizes.push(entry.size);
             file_modes.push(entry.mode.into());
@@ -434,7 +432,7 @@ impl RPMBuilder {
             file_flags.push(entry.flag);
             file_usernames.push(entry.user.to_owned());
             file_groupnames.push(entry.group.to_owned());
-            file_inodes.push(ino_index as i32);
+            file_inodes.push(ino_index);
             file_langs.push("".to_string());
             let index = self
                 .directories
@@ -454,8 +452,6 @@ impl RPMBuilder {
 
             writer.write_all(&content)?;
             writer.finish()?;
-
-            ino_index += 1;
         }
 
         self.requires.push(Dependency::any("/bin/sh".to_string()));
@@ -849,34 +845,34 @@ impl RPMBuilder {
             ));
         }
 
-        if self.pre_inst_script.is_some() {
+        if let Some(script) = self.pre_inst_script {
             actual_records.push(IndexEntry::new(
                 IndexTag::RPMTAG_PREIN,
                 offset,
-                IndexData::StringTag(self.pre_inst_script.unwrap()),
+                IndexData::StringTag(script),
             ));
         }
-        if self.post_inst_script.is_some() {
+        if let Some(script) = self.post_inst_script {
             actual_records.push(IndexEntry::new(
                 IndexTag::RPMTAG_POSTIN,
                 offset,
-                IndexData::StringTag(self.post_inst_script.unwrap()),
+                IndexData::StringTag(script),
             ));
         }
 
-        if self.pre_uninst_script.is_some() {
+        if let Some(script) = self.pre_uninst_script {
             actual_records.push(IndexEntry::new(
                 IndexTag::RPMTAG_PREUN,
                 offset,
-                IndexData::StringTag(self.pre_uninst_script.unwrap()),
+                IndexData::StringTag(script),
             ));
         }
 
-        if self.post_uninst_script.is_some() {
+        if let Some(script) = self.post_uninst_script {
             actual_records.push(IndexEntry::new(
                 IndexTag::RPMTAG_POSTUN,
                 offset,
-                IndexData::StringTag(self.post_uninst_script.unwrap()),
+                IndexData::StringTag(script),
             ));
         }
 

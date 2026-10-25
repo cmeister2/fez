@@ -92,18 +92,15 @@ mod test {
         let c2 = vec![2u8; 17];
         let c3 = vec![3u8; 17];
 
-        let mut buf = Vec::<u8>::with_capacity(17 * 3);
-        unsafe {
-            buf.set_len(17 * 3);
-        }
+        let mut buf = [0u8; 17 * 3];
         let mut sq = SeqCursor::new(&[c1.as_slice(), c2.as_slice(), c3.as_slice()]);
 
         sq.seek(std::io::SeekFrom::Current(16)).unwrap();
-        sq.read(&mut buf[0..4]).unwrap();
+        sq.read_exact(&mut buf[0..4]).unwrap();
         assert_eq!(buf[0..4].to_vec(), vec![1u8, 2u8, 2u8, 2u8]);
 
         sq.seek(std::io::SeekFrom::Current(12)).unwrap();
-        sq.read(&mut buf[4..8]).unwrap();
+        sq.read_exact(&mut buf[4..8]).unwrap();
         assert_eq!(buf[4..8].to_vec(), vec![2u8, 2u8, 3u8, 3u8]);
     }
 }

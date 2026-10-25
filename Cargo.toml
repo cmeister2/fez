@@ -16,7 +16,7 @@ repository = "https://github.com/cmeister2/fez"
 readme = "README.md"
 keywords = ["RPM", "packaging"]
 categories = ["parsing", "development-tools"]
-rust-version = "1.59.0"
+rust-version = "1.60.0"
 
 [lib]
 name = "rpm"
@@ -26,7 +26,7 @@ tokio = {version = "1.11", optional = true}
 thiserror = "1"
 nom = "7"
 num-traits = "0.2"
-num-derive = "0.3"
+num-derive = "0.4"
 num = "0.4"
 enum-primitive-derive = "0.2"
 enum-display-derive = "0.1"

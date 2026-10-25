@@ -47,7 +47,7 @@ fn test_rpm_header_base(package: RPMPackage) -> Result<(), Box<dyn std::error::E
     assert!(metadata.signature.index_entries[0].num_items == 16);
     assert_eq!(1156, metadata.signature.index_header.header_size);
 
-    let expected_data = vec![
+    let expected_data = [
         (
             16,
             IndexData::Bin(vec![
@@ -297,7 +297,7 @@ fn test_region_tag() -> Result<(), Box<dyn std::error::Error>> {
 
     let data = possible_binary.unwrap();
 
-    let (_, entry) = IndexEntry::<IndexSignatureTag>::parse(&data)?;
+    let (_, entry) = IndexEntry::<IndexSignatureTag>::parse(data)?;
 
     assert_eq!(entry.tag, IndexSignatureTag::HEADER_SIGNATURES);
     assert_eq!(entry.data.to_u32(), IndexData::Bin(Vec::new()).to_u32());
